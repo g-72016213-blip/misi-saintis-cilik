@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🧪 Misi Saintis Cilik – Jelajah 5 Deria</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+    
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --pastel-blue: #cce3ff;
+            --pastel-green: #d1f5d3;
+            --pastel-yellow: #fff3cd;
+            --pastel-pink: #ffd6e0;
+            --pastel-purple: #e5d9f2;
+            --primary-text: #2d3748;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0fdf4;
+            background-image: radial-gradient(#86efac 2px, transparent 2px);
+            background-size: 30px 30px;
+            color: var(--primary-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        h1, h2, h3, .title-font {
+            font-family: 'Fredoka One', cursive;
+            letter-spacing: 1px;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .animate-pop-in {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Buttons */
+        .btn-game {
+            transition: all 0.2s;
+            box-shadow: 0 6px 0px rgba(0,0,0,0.15);
+            touch-action: manipulation;
+        }
+        
+        .btn-game:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0px rgba(0,0,0,0.15);
+        }
+
+        .btn-game:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Interactive SVGs */
+        .svg-option {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 4px solid transparent;
+        }
+        .svg-option:hover:not(.disabled) {
+            transform: scale(1.05);
+            background-color: #f8fafc;
+        }
+        .svg-option:active:not(.disabled) {
+            transform: scale(0.95);
+        }
+        .svg-option.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        .svg-option.correct {
+            border-color: #22c55e !important;
+            background-color: #dcfce7 !important;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+            animation: popIn 0.4s;
+        }
+        .svg-option.wrong {
+            border-color: #ef4444 !important;
+            background-color: #fee2e2 !important;
+            opacity: 0.6;
+        }
+        .svg-option.disabled {
+            pointer-events: none;
+        }
+
+        /* Print Styles for Certificate - A4 Landscape */
+        @media print {
+            body {
+                background: white !important;
+                background-image: none !important;
+            }
+            body * {
+                visibility: hidden;
+            }
+            #screen-result, #screen-result * {
+                visibility: visible;
+            }
+            #screen-result {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .cert-container {
+                box-shadow: none !important;
+                border: 15px solid #22c55e !important;
+                width: 297mm !important; /* A4 Landscape Width */
+                height: 210mm !important; /* A4 Landscape Height */
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 40px !important;
+                border-radius: 0 !important;
+            }
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+        }
+
+        /* SVG Colors */
+        .skin-color { fill: #fcd5ce; }
+        .eye-white { fill: #ffffff; }
+        .eye-iris { fill: #4a4e69; }
+        .tongue-color { fill: #ff99c8; }
+        .mouth-bg { fill: #4a4e69; }
+        .ear-color { fill: #ffcdb2; }
+        .nose-color { fill: #ffb4a2; }
+    </style>
+</head>
+<body class="p-2 sm:p-4">
+
+    <!-- Global Header Controls -->
+    <div class="fixed top-4 right-4 z-50 flex gap-2 no-print">
+        <button onclick="toggleMute()" id="mute-btn" class="bg-white p-3 rounded-full shadow-lg border-2 border-slate-200 text-slate-600 hover:bg-slate-50 transition active:scale-95 w-12 h-12 flex items-center justify-center">
+            <i class="fas fa-volume-up text-xl"></i>
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="max-w-4xl w-full mx-auto flex-1 flex flex-col justify-center my-8">
+
+        <!-- ================= WELCOME SCREEN ================= -->
+        <div id="screen-welcome" class="bg-white rounded-[2rem] shadow-2xl p-6 sm:p-12 text-center border-8 border-green-400 animate-pop-in relative overflow-hidden">
+            <!-- Decorative Lab Elements -->
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-blue-200 rounded-full mix-blend-multiply opacity-50 blur-xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-yellow-200 rounded-full mix-blend-multiply opacity-50 blur-xl"></div>
+            
+            <div class="text-7xl mb-4 animate-float drop-shadow-md">🧑‍🔬🔬🌟</div>
+            <h1 class="text-3xl sm:text-5xl text-blue-600 mb-2 leading-tight uppercase">Misi Saintis Cilik</h1>
+            <h2 class="text-2xl sm:text-3xl font-bold text-green-500 mb-6 bg-green-50 py-2 px-6 rounded-full inline-block border-2 border-green-200">Jelajah 5 Deria</h2>
+            
+            <p class="text-lg sm:text-xl text-slate-600 font-bold mb-8">Pendidikan Khas - Sains Sosial dan Alam Sekitar</p>
+            
+            <div class="mb-8 max-w-sm mx-auto">
+                <label for="player-name" class="block text-xl font-extrabold text-slate-700 mb-3">Siapa Nama Saintis Kita?</label>
+                <input type="text" id="player-name" placeholder="Tulis nama..." class="w-full text-center text-2xl font-bold p-4 rounded-2xl border-4 border-blue-200 focus:border-blue-500 focus:outline-none transition-all shadow-inner text-blue-800 uppercase" maxlength="20">
+                <p id="name-error" class="text-red-500 font-bold mt-2 hidden animate-shake">Tulis nama dahulu, Saintis!</p>
+            </div>
+            
+            <button onclick="startGame()" class="w-full sm:w-auto bg-gradient-to-b from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white font-black text-2xl py-4 px-10 rounded-2xl btn-game border-2 border-blue-300 flex items-center justify-center gap-3 mx-auto">
+                <span>MULA MISI</span>
+                <i class="fas fa-rocket"></i>
+            </button>
+        </div>
+
+        <!-- ================= GAME SCREEN ================= -->
+        <div id="screen-game" class="hidden w-full flex-col gap-4">
+            
+            <!-- Header Bar -->
+            <div class="bg-white rounded-2xl p-4 shadow-md border-4 border-slate-100 flex flex-wrap justify-between items-center gap-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl shadow-inner border-2 border-blue-200">🧑‍🔬</div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Saintis</p>
+                        <p id="display-name" class="text-lg sm:text-xl font-black text-blue-700 leading-none">Nama</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="text-center">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Misi</p>
+                        <p id="mission-text" class="text-md sm:text-lg font-black text-purple-600">1/4</p>
+                    </div>
+                    <div class="flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-xl border-2 border-yellow-300 shadow-sm">
+                        <i class="fas fa-star text-yellow-500 text-xl"></i>
+                        <span id="score-display" class="text-xl sm:text-2xl font-black text-yellow-700">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="bg-white rounded-full p-2 shadow-sm border-2 border-slate-100 flex items-center gap-3">
+                <span id="progress-text" class="font-extrabold text-slate-500 whitespace-nowrap ml-2 text-sm sm:text-base">Cabaran 1/20</span>
+                <div class="flex-1 bg-slate-100 rounded-full h-4 overflow-hidden border border-slate-200">
+                    <div id="progress-bar" class="bg-gradient-to-r from-green-400 to-green-500 h-full rounded-full transition-all duration-500 ease-out shadow-inner" style="width: 5%"></div>
+                </div>
+            </div>
+
+            <!-- Challenge Card -->
+            <div class="bg-white rounded-[2rem] shadow-xl p-6 sm:p-8 border-b-8 border-r-8 border-slate-200 animate-pop-in relative min-h-[400px] flex flex-col">
+                
+                <!-- Question Header -->
+                <div class="flex justify-between items-start mb-4 gap-4">
+                    <h3 id="question-text" class="text-2xl sm:text-3xl font-black text-slate-700 leading-snug">Soalan di sini</h3>
+                    <button onclick="readQuestion()" class="shrink-0 bg-blue-100 hover:bg-blue-200 text-blue-700 w-12 h-12 rounded-xl transition shadow border-2 border-blue-200 active:scale-95 flex items-center justify-center" title="Dengar Soalan">
+                        <i class="fas fa-volume-up text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Dynamic Content Area (Injected via JS) -->
+                <div id="dynamic-content" class="flex-1 flex flex-col justify-center py-4">
+                    <!-- Options go here based on question type -->
+                </div>
+
+                <!-- Feedback Section -->
+                <div id="feedback-container" class="hidden mt-4 p-4 rounded-2xl animate-pop-in border-4">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span id="feedback-icon" class="text-3xl">✅</span>
+                        <h4 id="feedback-title" class="text-xl sm:text-2xl font-black">Betul!</h4>
+                    </div>
+                    <p id="feedback-text" class="text-lg sm:text-xl font-bold text-slate-700 mt-1 bg-white/50 p-2 rounded-xl"></p>
+                    
+                    <button id="next-btn" onclick="nextChallenge()" class="mt-4 w-full bg-gradient-to-b from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-black text-xl py-4 rounded-xl btn-game border-2 border-green-300">
+                        SETERUSNYA <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= RESULT / CERTIFICATE SCREEN ================= -->
+        <div id="screen-result" class="hidden w-full flex-col items-center justify-center">
+            
+            <div id="certificate-area" class="cert-container bg-white rounded-[2rem] shadow-2xl p-8 sm:p-12 text-center border-[10px] border-double border-green-500 w-full max-w-4xl relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMiIgZmlsbD0iI2YxZjViOSIvPjwvc3ZnPg==')]">
+                
+                <div class="absolute top-4 left-4 text-4xl opacity-80 animate-float">🌟</div>
+                <div class="absolute top-4 right-4 text-4xl opacity-80 animate-float" style="animation-delay: 1s;">🧪</div>
+                <div class="absolute bottom-4 left-4 text-4xl opacity-80 animate-float" style="animation-delay: 0.5s;">🔬</div>
+                <div class="absolute bottom-4 right-4 text-4xl opacity-80 animate-float" style="animation-delay: 1.5s;">🏆</div>
+
+                <div class="mb-4">
+                    <h1 class="title-font text-3xl sm:text-5xl text-green-600 uppercase tracking-widest drop-shadow-sm">Sijil Pencapaian</h1>
+                    <div class="h-2 w-48 bg-yellow-400 mx-auto rounded-full mt-2"></div>
+                </div>
+
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-600 mb-6">Dengan bangganya dianugerahkan kepada:</h2>
+                
+                <h3 id="cert-name" class="text-4xl sm:text-5xl font-black text-blue-700 mb-6 border-b-4 border-dashed border-blue-200 inline-block pb-2 px-12 capitalize uppercase">Nama Murid</h3>
+                
+                <p class="text-lg sm:text-xl text-slate-700 font-bold leading-relaxed mb-6">
+                    Kerana berjaya menamatkan<br>
+                    <span class="text-2xl sm:text-3xl text-purple-600 font-black inline-block mt-2">Misi Saintis Cilik: Jelajah 5 Deria</span>
+                </p>
+
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-6 mb-6">
+                    <div class="bg-yellow-50 p-4 rounded-3xl border-4 border-yellow-400 shadow-inner">
+                        <p class="text-sm font-bold text-yellow-800 uppercase mb-1">Markah</p>
+                        <p class="text-4xl font-black text-yellow-600"><span id="final-score">100</span><span class="text-2xl text-yellow-500">/100</span></p>
+                    </div>
+                    <div class="text-center">
+                        <p id="achievement-level" class="text-2xl sm:text-3xl font-black text-green-600 bg-green-100 py-2 px-6 rounded-full border-2 border-green-300">SAINTIS CILIK HEBAT!</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between items-end border-t-4 border-slate-100 pt-6 px-4">
+                    <div class="text-left">
+                        <p class="font-bold text-slate-400 uppercase text-xs">Tarikh</p>
+                        <p class="font-black text-lg text-slate-700">15 Oktober 2026</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-slate-400 uppercase text-xs">Guru</p>
+                        <p class="font-black text-xl text-blue-400 italic">Guru Sains PK Bakti</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls (Hidden on Print) -->
+            <div class="mt-8 flex flex-col sm:flex-row gap-4 w-full max-w-2xl no-print">
+                <button onclick="window.print()" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-black text-xl py-4 px-6 rounded-2xl btn-game border-2 border-purple-300 flex items-center justify-center gap-2">
+                    <i class="fas fa-print"></i> CETAK SIJIL
+                </button>
+                <button onclick="resetGame()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-black text-xl py-4 px-6 rounded-2xl btn-game border-2 border-blue-300 flex items-center justify-center gap-2">
+                    <i class="fas fa-redo"></i> MAIN SEMULA
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- SVG Assets Dictionary ---
+        const SVGS = {
+            mata: `<svg viewBox="0 0 100 100" class="w-full h-full p-2"><path d="M10 50 Q50 10 90 50 Q50 90 10 50" fill="none" stroke="#2d3748" stroke-width="6" stroke-linecap="round"/><circle cx="50" cy="50" r="18" fill="#4a4e69"/><circle cx="55" cy="45" r="5" fill="#fff"/></svg>`,
+            telinga: `<svg viewBox="0 0 100 100" class="w-full h-full p-2"><path d="M40 20 C60 10, 80 30, 75 55 C70 80, 50 85, 40 75 C35 70, 35 60, 45 55 C50 52, 55 45, 50 35 C45 25, 30 30, 25 45" fill="#ffcdb2" stroke="#2d3748" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+            hidung: `<svg viewBox="0 0 100 100" class="w-full h-full p-2"><path d="M50 20 L50 60 C50 75, 70 75, 70 65 M50 60 C50 75, 30 75, 30 65 M50 60 L50 70" fill="none" stroke="#2d3748" stroke-width="6" stroke-linecap="round"/></svg>`,
+            lidah: `<svg viewBox="0 0 100 100" class="w-full h-full p-2"><path d="M20 40 Q50 60 80 40" fill="none" stroke="#2d3748" stroke-width="6" stroke-linecap="round"/><path d="M35 45 C35 80, 65 80, 65 45" fill="#ff99c8" stroke="#2d3748" stroke-width="6"/><line x1="50" y1="45" x2="50" y2="65" stroke="#2d3748" stroke-width="4" stroke-linecap="round"/></svg>`,
+            kulit: `<svg viewBox="0 0 100 100" class="w-full h-full p-2"><path d="M45 80 L45 40 A5 5 0 0 1 55 40 L55 30 A5 5 0 0 1 65 30 L65 25 A5 5 0 0 1 75 25 L75 50 M45 45 L35 45 A5 5 0 0 0 35 55 L40 65 L45 80" fill="#fcd5ce" stroke="#2d3748" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+            loceng: `<svg viewBox="0 0 100 100" class="w-full h-full p-2"><path d="M30 70 Q50 20 70 70 Z" fill="#ffd166" stroke="#2d3748" stroke-width="5" stroke-linejoin="round"/><rect x="25" y="70" width="50" height="10" rx="4" fill="#ef476f" stroke="#2d3748" stroke-width="5"/><circle cx="50" cy="85" r="5" fill="#2d3748"/><path d="M45 20 Q50 10 55 20" fill="none" stroke="#2d3748" stroke-width="5" stroke-linecap="round"/></svg>`,
+            minyakWangi: `<svg viewBox="0 0 100 100" class="w-full h-full p-2"><rect x="30" y="40" width="40" height="45" rx="5" fill="#118ab2" stroke="#2d3748" stroke-width="5"/><rect x="40" y="30" width="20" height="10" fill="#ffd166" stroke="#2d3748" stroke-width="5"/><path d="M50 30 L50 20 M60 20 L50 20" stroke="#2d3748" stroke-width="5" stroke-linecap="round"/><circle cx="45" cy="15" r="3" fill="#2d3748"/><circle cx="55" cy="10" r="2" fill="#2d3748"/><circle cx="65" cy="18" r="4" fill="#2d3748"/></svg>`,
+            pelangi: `<svg viewBox="0 0 100 100" class="w-full h-full p-2"><path d="M10 80 A40 40 0 0 1 90 80" fill="none" stroke="#ef476f" stroke-width="8"/><path d="M20 80 A30 30 0 0 1 80 80" fill="none" stroke="#ffd166" stroke-width="8"/><path d="M30 80 A20 20 0 0 1 70 80" fill="none" stroke="#06d6a0" stroke-width="8"/><path d="M40 80 A10 10 0 0 1 60 80" fill="none" stroke="#118ab2" stroke-width="8"/></svg>`,
+            gula: `<svg viewBox="0 0 100 100" class="w-full h-full p-2"><circle cx="50" cy="50" r="20" fill="#ef476f" stroke="#2d3748" stroke-width="5"/><path d="M30 50 L10 35 L15 65 Z" fill="#ffd166" stroke="#2d3748" stroke-width="5" stroke-linejoin="round"/><path d="M70 50 L90 35 L85 65 Z" fill="#ffd166" stroke="#2d3748" stroke-width="5" stroke-linejoin="round"/><path d="M40 50 Q50 40 60 50" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>`,
+            kapas: `<svg viewBox="0 0 100 100" class="w-full h-full p-2"><path d="M30 60 A15 15 0 0 1 30 30 A20 20 0 0 1 70 30 A15 15 0 0 1 70 60 Z" fill="#fff" stroke="#2d3748" stroke-width="5" stroke-linejoin="round"/><path d="M45 40 Q50 35 55 40" fill="none" stroke="#e2e8f0" stroke-width="3" stroke-linecap="round"/></svg>`
+        };
+
+        const ORGAN_LIST = [
+            { id: 'mata', label: 'MATA', svg: SVGS.mata },
+            { id: 'telinga', label: 'TELINGA', svg: SVGS.telinga },
+            { id: 'hidung', label: 'HIDUNG', svg: SVGS.hidung },
+            { id: 'lidah', label: 'LIDAH', svg: SVGS.lidah },
+            { id: 'kulit', label: 'KULIT', svg: SVGS.kulit }
+        ];
+
+        const GAME_DATA = [
+            // MISI 1: Kenali Organ Deria (Type: find_organ)
+            { type: 'find_organ', mission: 1, text: "Organ manakah digunakan untuk MELIHAT?", answer: 'mata', explanation: "Mata digunakan untuk melihat warna, bentuk, dan cahaya." },
+            { type: 'find_organ', mission: 1, text: "Organ manakah digunakan untuk MENDENGAR?", answer: 'telinga', explanation: "Telinga membantu kita mendengar pelbagai bunyi di sekeliling." },
+            { type: 'find_organ', mission: 1, text: "Organ manakah digunakan untuk MENGHIDU?", answer: 'hidung', explanation: "Hidung digunakan untuk menghidu bau wangi atau busuk." },
+            { type: 'find_organ', mission: 1, text: "Organ manakah digunakan untuk MERASA makanan?", answer: 'lidah', explanation: "Lidah merasa makanan manis, masam, pahit, dan masin." },
+            { type: 'find_organ', mission: 1, text: "Organ manakah digunakan untuk MERASA SENTUHAN?", answer: 'kulit', explanation: "Kulit dan tangan membantu kita merasa kasar, lembut, panas, atau sejuk." },
+
+            // MISI 2: Padankan Objek (Type: match_object)
+            { type: 'match_object', mission: 2, text: "Deria apakah untuk mengecam BUNYI LOCENG?", objectName: "Loceng", objectSvg: SVGS.loceng, answer: 'telinga', explanation: "Kita MENDENGAR bunyi loceng menggunakan telinga." },
+            { type: 'match_object', mission: 2, text: "Deria apakah untuk mengecam BAU MINYAK WANGI?", objectName: "Minyak Wangi", objectSvg: SVGS.minyakWangi, answer: 'hidung', explanation: "Kita MENGHIDU bau minyak wangi menggunakan hidung." },
+            { type: 'match_object', mission: 2, text: "Deria apakah untuk mengecam WARNA PELANGI?", objectName: "Pelangi", objectSvg: SVGS.pelangi, answer: 'mata', explanation: "Kita MELIHAT warna pelangi menggunakan mata." },
+            { type: 'match_object', mission: 2, text: "Deria apakah untuk mengecam RASA GULA?", objectName: "Gula-gula", objectSvg: SVGS.gula, answer: 'lidah', explanation: "Kita MERASA manis gula menggunakan lidah." },
+            { type: 'match_object', mission: 2, text: "Deria apakah untuk mengecam TEKSTUR KAPAS YANG LEMBUT?", objectName: "Kapas", objectSvg: SVGS.kapas, answer: 'kulit', explanation: "Kita MENYENTUH kapas lembut menggunakan kulit/tangan." },
+
+            // MISI 3: Saintis Penyiasat (Type: mcq)
+            { type: 'mcq', mission: 3, text: "Aina terdengar bunyi guruh di langit. Organ deria apakah yang Aina gunakan?", options: ["TELINGA", "MATA", "HIDUNG"], answer: "TELINGA", explanation: "Guruh mengeluarkan bunyi yang kuat. Kita mendengarnya dengan telinga." },
+            { type: 'mcq', mission: 3, text: "Ali memberhentikan basikalnya apabila melihat lampu isyarat bertukar merah. Organ deria apakah yang Ali gunakan?", options: ["KULIT", "MATA", "LIDAH"], answer: "MATA", explanation: "Lampu isyarat dikesan menggunakan deria penglihatan (mata)." },
+            { type: 'mcq', mission: 3, text: "Siti menghidu bau bunga mawar yang wangi di taman. Organ deria apakah yang Siti gunakan?", options: ["HIDUNG", "TELINGA", "MATA"], answer: "HIDUNG", explanation: "Bau wangi dikesan menggunakan deria bau melalui hidung." },
+            { type: 'mcq', mission: 3, text: "Amir mengerutkan mukanya kerana merasa buah limau yang sangat masam. Organ deria apakah yang Amir gunakan?", options: ["LIDAH", "KULIT", "TELINGA"], answer: "LIDAH", explanation: "Rasa masam dikesan oleh tunas rasa pada lidah." },
+            { type: 'mcq', mission: 3, text: "Lina segera melepaskan ketulan ais kerana terasa sangat sejuk. Organ deria apakah yang Lina gunakan?", options: ["MATA", "HIDUNG", "KULIT"], answer: "KULIT", explanation: "Rasa sejuk dikesan melalui sentuhan pada kulit." },
+
+            // MISI 4: Cabaran Saintis Hebat (Type: mcq)
+            { type: 'mcq', mission: 4, text: "Mengapa kita tidak patut mendengar muzik terlalu kuat menggunakan fon telinga?", options: ["Kerana ia membosankan.", "Untuk melindungi pendengaran kita.", "Supaya mata tidak rosak."], answer: "Untuk melindungi pendengaran kita.", explanation: "Bunyi yang terlalu kuat boleh merosakkan gegendang telinga." },
+            { type: 'mcq', mission: 4, text: "Organ manakah membantu kita mengetahui kek itu rasanya manis?", options: ["Lidah", "Hidung", "Telinga"], answer: "Lidah", explanation: "Lidah kita mempunyai deria rasa untuk mengecam rasa manis, masam, masin, dan pahit." },
+            { type: 'mcq', mission: 4, text: "Apakah deria yang sangat penting untuk membantu kita mengesan bahaya seperti bau asap kebakaran?", options: ["Deria sentuhan", "Deria rasa", "Deria bau"], answer: "Deria bau", explanation: "Deria bau (hidung) dapat mengesan asap walaupun kita tidak melihat apinya." },
+            { type: 'mcq', mission: 4, text: "Mengapa kita perlu berhati-hati dan tidak menyentuh periuk yang panas?", options: ["Kerana kulit boleh melecur.", "Kerana periuk akan menjadi sejuk.", "Kerana ia akan berbunyi kuat."], answer: "Kerana kulit boleh melecur.", explanation: "Kulit kita sensitif kepada suhu. Benda yang terlalu panas akan mencederakan kulit." },
+            { type: 'mcq', mission: 4, text: "Ketika melintas jalan raya, deria manakah yang paling penting digunakan?", options: ["Penglihatan dan pendengaran.", "Bau dan sentuhan.", "Rasa dan bau."], answer: "Penglihatan dan pendengaran.", explanation: "Kita perlu MELIHAT kenderaan (mata) dan MENDENGAR bunyi hon/enjin (telinga) untuk selamat." }
+        ];
+
+        let playerName = "";
+        let score = 0;
+        let currentQuestionIndex = 0;
+        let isFirstTry = true;
+        let isMuted = false;
+        let hasAnswered = false;
+
+        // Audio Context Setup (Synthesized sounds - no external files needed)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function playTone(freq, type, duration, vol) {
+            if (isMuted) return;
+            initAudio();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            
+            gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + duration);
+        }
+
+        function playSuccessSound() {
+            if (isMuted) return;
+            playTone(523.25, 'sine', 0.1, 0.3); // C5
+            setTimeout(() => playTone(659.25, 'sine', 0.1, 0.3), 100); // E5
+            setTimeout(() => playTone(783.99, 'sine', 0.3, 0.3), 200); // G5
+        }
+
+        function playWrongSound() {
+            if (isMuted) return;
+            playTone(300, 'triangle', 0.2, 0.3);
+            setTimeout(() => playTone(250, 'triangle', 0.3, 0.3), 150);
+        }
+
+        function playPopSound() {
+            if (isMuted) return;
+            playTone(400, 'sine', 0.05, 0.1);
+        }
+
+        // TTS Setup
+        function speak(text) {
+            if (isMuted) return;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'ms-MY';
+                u.rate = 0.85; // Slower for Special Ed
+                u.pitch = 1.1;
+                window.speechSynthesis.speak(u);
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('mute-btn');
+            if (isMuted) {
+                btn.innerHTML = '<i class="fas fa-volume-mute text-red-500 text-xl"></i>';
+                window.speechSynthesis.cancel();
+            } else {
+                btn.innerHTML = '<i class="fas fa-volume-up text-xl"></i>';
+                initAudio(); // Initialize on user interaction
+                playPopSound();
+            }
+        }
+
+        function startGame() {
+            const input = document.getElementById('player-name').value.trim();
+            const err = document.getElementById('name-error');
+            
+            if (!input) {
+                err.classList.remove('hidden');
+                err.style.animation = 'none'; void err.offsetWidth; err.style.animation = null; // trigger reflow
+                document.getElementById('player-name').focus();
+                return;
+            }
+            
+            err.classList.add('hidden');
+            playerName = input;
+            document.getElementById('display-name').textContent = playerName;
+            
+            score = 0;
+            currentQuestionIndex = 0;
+            updateScoreDisplay();
+            
+            initAudio(); // Initialize audio context on start button click
+            switchScreen('game');
+            loadChallenge();
+            
+            speak(`Misi bermula! Selamat maju jaya, Saintis ${playerName}.`);
+        }
+
+        function loadChallenge() {
+            isFirstTry = true;
+            hasAnswered = false;
+            const q = GAME_DATA[currentQuestionIndex];
+            
+            // Update UI
+            document.getElementById('mission-text').textContent = `${q.mission}/4`;
+            document.getElementById('progress-text').textContent = `Cabaran ${currentQuestionIndex + 1}/20`;
+            document.getElementById('progress-bar').style.width = `${((currentQuestionIndex) / 20) * 100}%`;
+            
+            document.getElementById('question-text').textContent = q.text;
+            document.getElementById('feedback-container').classList.add('hidden');
+            
+            const contentArea = document.getElementById('dynamic-content');
+            contentArea.innerHTML = ''; // Clear previous
+            
+            if (q.type === 'find_organ') {
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 sm:grid-cols-5 gap-4 w-full max-w-2xl mx-auto';
+                
+                ORGAN_LIST.forEach(org => {
+                    const btn = document.createElement('div');
+                    btn.className = 'svg-option bg-white rounded-2xl p-4 shadow flex flex-col items-center justify-center';
+                    btn.innerHTML = `<div class="w-16 h-16 sm:w-20 sm:h-20 mb-2">${org.svg}</div><span class="font-bold text-slate-700">${org.label}</span>`;
+                    btn.onclick = () => handleAnswer(btn, org.id, q.answer, q.explanation);
+                    grid.appendChild(btn);
+                });
+                contentArea.appendChild(grid);
+            } 
+            else if (q.type === 'match_object') {
+                const container = document.createElement('div');
+                container.className = 'flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 w-full';
+                
+                // Object (Target)
+                const objDiv = document.createElement('div');
+                objDiv.className = 'bg-blue-50 rounded-3xl p-6 border-4 border-blue-200 flex flex-col items-center shadow-inner animate-float w-40';
+                objDiv.innerHTML = `<div class="w-24 h-24 mb-2">${q.objectSvg}</div><span class="font-black text-blue-800 text-center">${q.objectName}</span>`;
+                
+                // Arrow
+                const arrow = document.createElement('div');
+                arrow.className = 'text-4xl text-slate-300 hidden sm:block';
+                arrow.innerHTML = '<i class="fas fa-arrow-right"></i>';
+                
+                const arrowDown = document.createElement('div');
+                arrowDown.className = 'text-4xl text-slate-300 sm:hidden';
+                arrowDown.innerHTML = '<i class="fas fa-arrow-down"></i>';
+
+                // Organs Grid
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-3 gap-3 w-full max-w-md';
+                ORGAN_LIST.forEach(org => {
+                    const btn = document.createElement('div');
+                    btn.className = 'svg-option bg-white rounded-xl p-2 shadow flex flex-col items-center justify-center';
+                    btn.innerHTML = `<div class="w-12 h-12 mb-1">${org.svg}</div><span class="font-bold text-xs sm:text-sm text-slate-700">${org.label}</span>`;
+                    btn.onclick = () => handleAnswer(btn, org.id, q.answer, q.explanation);
+                    grid.appendChild(btn);
+                });
+                
+                container.appendChild(objDiv);
+                container.appendChild(arrow);
+                container.appendChild(arrowDown);
+                container.appendChild(grid);
+                contentArea.appendChild(container);
+            }
+            else if (q.type === 'mcq') {
+                const grid = document.createElement('div');
+                grid.className = 'flex flex-col gap-3 w-full max-w-xl mx-auto';
+                
+                q.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-game bg-white text-left p-5 rounded-2xl border-4 border-slate-200 text-lg sm:text-xl font-bold text-slate-700 hover:bg-slate-50 hover:border-blue-300 focus:outline-none transition';
+                    btn.textContent = opt;
+                    btn.onclick = () => handleAnswer(btn, opt, q.answer, q.explanation);
+                    grid.appendChild(btn);
+                });
+                contentArea.appendChild(grid);
+            }
+            
+            // Auto read if not muted (optional, usually better to wait for interaction)
+            // setTimeout(() => readQuestion(), 500);
+        }
+
+        function handleAnswer(element, selected, correct, explanation) {
+            if (hasAnswered) return;
+            
+            playPopSound();
+            const isCorrect = (selected === correct);
+            const contentArea = document.getElementById('dynamic-content');
+            
+            if (isCorrect) {
+                hasAnswered = true; // Lock in answer
+                
+                // Add Score
+                if (isFirstTry) {
+                    score += 5;
+                    updateScoreDisplay();
+                }
+                
+                // Visuals
+                playSuccessSound();
+                if(element.tagName === 'BUTTON') {
+                    element.classList.add('!bg-green-100', '!border-green-500', '!text-green-800');
+                    // Disable others
+                    Array.from(contentArea.querySelectorAll('button')).forEach(b => {
+                        if(b !== element) b.style.opacity = '0.5';
+                        b.disabled = true;
+                    });
+                } else {
+                    element.classList.add('correct');
+                    Array.from(contentArea.querySelectorAll('.svg-option')).forEach(b => {
+                        if(b !== element) b.classList.add('disabled');
+                    });
+                }
+                
+                showFeedback(true, explanation);
+                
+                confetti({
+                    particleCount: 40,
+                    spread: 60,
+                    origin: { y: 0.8 },
+                    colors: ['#22c55e', '#eab308', '#3b82f6']
+                });
+                
+            } else {
+                isFirstTry = false; // Lose points for this question
+                playWrongSound();
+                
+                if(element.tagName === 'BUTTON') {
+                    element.classList.add('!bg-red-50', '!border-red-300', '!text-red-500');
+                    setTimeout(() => {
+                        element.classList.remove('!bg-red-50', '!border-red-300', '!text-red-500');
+                    }, 1000);
+                } else {
+                    element.classList.add('wrong');
+                    setTimeout(() => {
+                        element.classList.remove('wrong');
+                    }, 1000);
+                }
+                
+                showFeedback(false, "Cuba tekan yang lain.");
+            }
+        }
+
+        function showFeedback(isSuccess, text) {
+            const container = document.getElementById('feedback-container');
+            const icon = document.getElementById('feedback-icon');
+            const title = document.getElementById('feedback-title');
+            const textEl = document.getElementById('feedback-text');
+            const nextBtn = document.getElementById('next-btn');
+            
+            container.classList.remove('hidden');
+            
+            if (isSuccess) {
+                container.className = 'mt-4 p-4 rounded-2xl animate-pop-in border-4 bg-green-50 border-green-300 block';
+                icon.textContent = '🌟';
+                title.textContent = 'HEBAT!';
+                title.className = 'text-xl sm:text-2xl font-black text-green-700';
+                textEl.textContent = text;
+                nextBtn.classList.remove('hidden');
+                
+                speak(`Hebat! ${text}`);
+            } else {
+                container.className = 'mt-4 p-4 rounded-2xl animate-pop-in border-4 bg-red-50 border-red-200 block';
+                icon.textContent = '💡';
+                title.textContent = 'Opps, kurang tepat.';
+                title.className = 'text-xl sm:text-2xl font-black text-red-600';
+                textEl.textContent = text;
+                nextBtn.classList.add('hidden'); // Hide next button until correct
+                
+                speak(`Cuba lagi.`);
+            }
+            
+            // Scroll to feedback on mobile
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function nextChallenge() {
+            window.speechSynthesis.cancel();
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < GAME_DATA.length) {
+                loadChallenge();
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            document.getElementById('progress-bar').style.width = `100%`;
+            switchScreen('result');
+            
+            document.getElementById('cert-name').textContent = playerName;
+            document.getElementById('final-score').textContent = score;
+            
+            let level = "";
+            if (score === 100) level = "SAINTIS CILIK TERBILANG! 🏆";
+            else if (score >= 80) level = "SAINTIS CILIK HEBAT! 🌟";
+            else if (score >= 50) level = "SAINTIS CILIK BIJAK! 👍";
+            else level = "SAINTIS CILIK BERUSAHA! 💪";
+            
+            document.getElementById('achievement-level').textContent = level;
+            
+            // Grand Confetti
+            var duration = 4000;
+            var end = Date.now() + duration;
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#22c55e', '#3b82f6', '#eab308']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#22c55e', '#3b82f6', '#eab308']
+                });
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+            
+            speak(`Tahniah ${playerName}! Kamu berjaya menamatkan misi dengan markah ${score} per 100. Kamu adalah ${level}`);
+        }
+
+        function resetGame() {
+            window.speechSynthesis.cancel();
+            document.getElementById('player-name').value = '';
+            switchScreen('welcome');
+        }
+
+        // Utility Functions
+        function switchScreen(screenId) {
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-result').classList.add('hidden');
+            
+            const target = document.getElementById(`screen-${screenId}`);
+            target.classList.remove('hidden');
+            
+            if(screenId === 'game' || screenId === 'welcome') {
+                target.classList.add('flex');
+            } else {
+                 target.classList.add('flex'); // for result centering
+            }
+            window.scrollTo(0,0);
+        }
+
+        function updateScoreDisplay() {
+            const sd = document.getElementById('score-display');
+            sd.textContent = score;
+            sd.classList.remove('animate-pop-in');
+            void sd.offsetWidth;
+            sd.classList.add('animate-pop-in');
+        }
+
+        function readQuestion() {
+            const q = GAME_DATA[currentQuestionIndex];
+            let textToRead = q.text;
+            
+            if(q.type === 'mcq') {
+                textToRead += ". Pilihan jawapan: " + q.options.join(", atau, ");
+            } else if (q.type === 'match_object') {
+                textToRead += `. Cari organ yang sesuai untuk mengecam ${q.objectName}.`;
+            }
+            
+            speak(textToRead);
+        }
+        
+    </script>
+</body>
+</html>
